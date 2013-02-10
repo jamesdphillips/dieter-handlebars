@@ -13,4 +13,3 @@
                 (settings/with-options {:engine :rhino :asset-root "test/fixtures/assets"}
                  (preprocess-handlebars (io/file "test/fixtures/assets/javascripts/view.hbs")))
                 "HandlebarsTemplates"))))
-

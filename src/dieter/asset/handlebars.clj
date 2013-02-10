@@ -7,17 +7,15 @@
 
 (def pool (pools/make-pool))
 
-(defn compile-template [file]
-  (run-compiler pool
-                ["handlebars-1.0.rc.2.js"
-                 "handlebars-wrapper.js"]
-                "precompileHandlebars"
-                file))
-
 (defn preprocess-handlebars [file]
-  (asset/memoize-file file compile-template))
+  (asset/memoize-file file 
+                #(run-compiler pool
+                               ["handlebars-1.0.rc.2.js"
+                                "handlebars-wrapper.js"]
+                               "precompileHandlebars"
+                               file)))
 
 (defrecord Handlebars [file]
   dieter.asset.Asset
-  (read-asset [this]
+  (read-asset [this options]
     (dieter.asset.javascript.Js. (:file this) (preprocess-handlebars (:file this)))))
