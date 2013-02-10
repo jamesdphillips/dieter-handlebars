@@ -1,43 +1,23 @@
 (ns dieter.asset.handlebars
   (:require
-   dieter.asset
+   [dieter.asset :as asset]
    dieter.asset.javascript
-   [dieter.settings :as settings]
-   [dieter.pools :as pools]
-   [dieter.rhino :as rhino]
-   [dieter.v8 :as v8]
-   [clojure.string :as s]))
-
-(defn filename-without-ext [file]
-  (s/replace (.getName file) #"\..*$" ""))
+   [dieter.pools :as pools])
+  (:use [dieter.jsengine :only (run-compiler)]))
 
 (def pool (pools/make-pool))
 
-(defn compile-str [pool preloads fn-name str]
-  (if (= (:engine settings/*settings*) :rhino)
-    (rhino/with-scope pool preloads
-      (rhino/call fn-name [str]))
-    (v8/with-scope pool preloads
-      (v8/call fn-name [str]))))
-
-(defn with-scope [pool preloads & body]
-  (if (= (:engine settings/*settings*) :rhino)
-    (rhino/with-scope pool preloads body)
-    (v8/with-scope pool preloads body)))
-
-(defn compile-hbs [string filename]
-  (str "HandlebarsTemplates[\"" filename "\"]=Handlebars.template("
-       (compile-str pool ["handlebars-1.0.rc.2.js" "hbs_wrapper.js"] "Handlebars.precompile" string)
-       ");"))
+(defn compile-template [file]
+  (run-compiler pool
+                ["handlebars-1.0.rc.2.js"
+                 "handlebars-wrapper.js"]
+                "precompileHandlebars"
+                file))
 
 (defn preprocess-handlebars [file]
-  (with-scope pool ["handlebars-1.0.rc.2.js" "hbs_wrapper.js"]
-    (let [hbs (slurp file)
-          filename (filename-without-ext file)]
-      (compile-hbs hbs filename))))
+  (asset/memoize-file file compile-template))
 
 (defrecord Handlebars [file]
   dieter.asset.Asset
-  (read-asset [this options]
+  (read-asset [this]
     (dieter.asset.javascript.Js. (:file this) (preprocess-handlebars (:file this)))))
-

@@ -6,11 +6,11 @@
 
 (deftest test-preprocess-handlebars
   (is (not= -1 (.indexOf
-                (settings/with-options {:engine :v8}
+                (settings/with-options {:engine :v8 :asset-root "test/fixtures/assets"}
                  (preprocess-handlebars (io/file "test/fixtures/assets/javascripts/view.hbs")))
-                "HandlebarsTemplates[\"view\"]=Handlebars.template")))
+                "HandlebarsTemplates")))
   (is (not= -1 (.indexOf
-                (settings/with-options {:engine :rhino}
+                (settings/with-options {:engine :rhino :asset-root "test/fixtures/assets"}
                  (preprocess-handlebars (io/file "test/fixtures/assets/javascripts/view.hbs")))
-                "HandlebarsTemplates[\"view\"]=Handlebars.template"))))
+                "HandlebarsTemplates"))))
 
