@@ -13,17 +13,17 @@
 
 (def pool (pools/make-pool))
 
+(defn compile-str [pool preloads fn-name str]
+  (if (= (:engine settings/*settings*) :rhino)
+    (rhino/with-scope pool preloads
+      (rhino/call fn-name str))
+    (v8/with-scope pool preloads
+      (v8/call fn-name str))))
+
 (defn compile-hbs [string filename]
   (str "HandlebarsTemplates[\"" filename "\"]=Handlebars.template("
        (compile-str pool [] "Handlebars.precompile" string)
        ");"))
-
-(defn compile-str [pool preloads fn-name str])
-  (if (= (:engine settings/*settings*) :rhino)
-    (rhino/with-scope pool preloads
-      (rhino/call fn-name args))
-    (v8/with-scope pool preloads
-      (v8/call fn-name args)))))
 
 (defn preprocess-handlebars [file]
   (compile-str pool ["handlebars-1.0.rc.2.js"]
