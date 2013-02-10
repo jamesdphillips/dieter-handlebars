@@ -16,17 +16,22 @@
 (defn compile-str [pool preloads fn-name str]
   (if (= (:engine settings/*settings*) :rhino)
     (rhino/with-scope pool preloads
-      (rhino/call fn-name str))
+      (rhino/call fn-name [str]))
     (v8/with-scope pool preloads
-      (v8/call fn-name str))))
+      (v8/call fn-name [str]))))
+
+(defn with-scope [pool preloads & body]
+  (if (= (:engine settings/*settings*) :rhino)
+    (rhino/with-scope pool preloads body)
+    (v8/with-scope pool preloads body)))
 
 (defn compile-hbs [string filename]
   (str "HandlebarsTemplates[\"" filename "\"]=Handlebars.template("
-       (compile-str pool [] "Handlebars.precompile" string)
+       (compile-str pool ["handlebars-1.0.rc.2.js" "hbs_wrapper.js"] "Handlebars.precompile" string)
        ");"))
 
 (defn preprocess-handlebars [file]
-  (compile-str pool ["handlebars-1.0.rc.2.js"]
+  (with-scope pool ["handlebars-1.0.rc.2.js" "hbs_wrapper.js"]
     (let [hbs (slurp file)
           filename (filename-without-ext file)]
       (compile-hbs hbs filename))))
