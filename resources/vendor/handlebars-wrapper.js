@@ -13,6 +13,7 @@ console.log = console.info = console.warn = console.error = function(){};
 function precompileHandlebars(input, absolute, filename) {
   var no_ext = filename.substr(0, filename.lastIndexOf('.')) || filename;
   var pre = Handlebars.precompile(input);
-  var tmpl = "HandlebarsTemplates ||= {}; HandlebarsTemplates['" + no_ext + "'] = Handlebars.template(" + pre + ");"
-  return tmpl;
+  var tmpl = "(function () { this.HandlebarsTemplates || (this.HandlebarsTemplates = {}); this.HandlebarsTemplates['" + no_ext + "'] = Handlebars.template(" + pre + "); }).call(this);";
+  return tmpl; 
 };
+
